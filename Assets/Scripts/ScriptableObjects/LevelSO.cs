@@ -5,19 +5,21 @@ using UnityEngine;
 public class LevelSO : ScriptableObject
 {
     public int levelIndex;
-
     public Vector2Int start;
     public Vector2Int end;
+    public List<Vector2Int> path;
     public int[,] maze;
+    public int width;
+    public int heigth;
 
-    public int[,] getMaze() { return maze; }
-    public Vector2Int getStart() { return start; }
-    public Vector2Int getEnd() { return end; }
-    public void CreateLevel(Vector2Int start_, Vector2Int end_, int[,] maze_)
+    public void CreateLevel(Vector2Int start_, Vector2Int end_, int[,] maze_, List<Vector2Int> path_, int width_, int heigth_)
     {
         start = start_;
         end = end_;
         maze = maze_;
+        path = path_;
+        width = width_;
+        heigth = heigth_;
     }
         
 }

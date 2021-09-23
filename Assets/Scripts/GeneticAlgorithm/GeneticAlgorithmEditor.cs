@@ -27,6 +27,14 @@ public class GeneticAlgorithmEditor : Editor
         {
             geneticAlgorithm.LoadLevel();
         }
+        if (GUILayout.Button("Generate Puzzle"))
+        {
+            geneticAlgorithm.GeneratePuzzle();
+        }
+        if (GUILayout.Button("Randomize Puzzle"))
+        {
+            geneticAlgorithm.RandomizeSolution();
+        }
     }
 }
 

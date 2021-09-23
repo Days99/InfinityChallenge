@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using Priority_Queue;
 
-public class PathfindingGenetic : MonoBehaviour
+public class PathfindingGenetic
 {
     private Individual currentMaze;
     
@@ -81,7 +81,7 @@ public class PathfindingGenetic : MonoBehaviour
 
     }
 
-    private List<Vector2Int> GetVector2Ints(Vector2Int pos, int[,] maze, int width, int height)
+    public List<Vector2Int> GetVector2Ints(Vector2Int pos, int[,] maze, int width, int height)
     {
         List<Vector2Int> neighboors = new List<Vector2Int>();
         if ((pos.x + 1 < width) && (maze[pos.x + 1, pos.y] <= 0))
