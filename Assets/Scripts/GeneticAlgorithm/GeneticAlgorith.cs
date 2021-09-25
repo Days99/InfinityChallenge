@@ -3,6 +3,8 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
+using System.Linq;
+using UnityEditor;
 using UnityEngine;
 using Random = UnityEngine.Random;
 
@@ -18,6 +20,11 @@ public class GeneticAlgorith : MonoBehaviour
     public int maxGeneration = 100;
     public GameObject straightPieceObject;
     public GameObject curvedPieceObject;
+    public GameObject endObj;
+    public GameObject tileObj;
+    public GameObject pathObj;
+
+
 
 
     public LevelSO levelSO;
@@ -25,10 +32,12 @@ public class GeneticAlgorith : MonoBehaviour
 
     private GameObject currentMaze;
     private PathfindingGenetic Astar;
-    private Individual currentIndividual;
-    private List<GameObject> pathObjects;
+    public Individual currentIndividual;
+    public List<GameObject> pathObjects;
 
 
+
+    //Genetic Algorithm
     private int[,] GenerateIndividual(){
         int[,] newMaze = new int[mazeWitdth, mazeHeight];
         for (int i = 0; i < mazeWitdth; i++)
@@ -104,76 +113,7 @@ public class GeneticAlgorith : MonoBehaviour
         }
     }
 
-    private void GenerateLevelGeometry(Individual i)
-    {
-        if (currentMaze != null)
-            DestroyImmediate(currentMaze);
 
-
-        Vector2Int center = new Vector2Int(mazeWitdth / 2, mazeHeight / 2);
-        GameObject g = new GameObject();
-        //g.transform.rotation = Quaternion.Euler(new Vector3(120, 0, 0));
-        g.name = "Maze";
-        currentMaze = g;
-
-        int[,] newMaze = new int[mazeWitdth, mazeHeight];
-        
-        for (int x = 0; x < mazeWitdth; x++)
-        {
-            for (int y = 0; y < mazeHeight; y++)
-            {
-                if (i.maze[x, y] == 1)
-                {
-                    //GameObject wall = GameObject.CreatePrimitive(PrimitiveType.Cube);
-                    //wall.transform.position = new Vector3(x - center.x + 0.5f, 0.5f, y - center.y +  0.5f);
-                    //wall.transform.localScale = new Vector3(1, 1, 1);
-                    //wall.name = "Wall_" + x + "_" + y;
-                    //wall.transform.SetParent(currentMaze.transform);
-                }
-                else if (i.maze[x, y] <= 0)
-                {
-                    GameObject wall = GameObject.CreatePrimitive(PrimitiveType.Cube);
-                    wall.transform.position = new Vector3(x - center.x + 0.5f, 0, y - center.y + 0.5f);
-                    wall.transform.localScale = new Vector3(1, 1, 1);
-                    wall.name = "Ground_" + x + "_" + y;
-                    wall.GetComponent<Renderer>().material.color = Color.white;
-                    wall.transform.SetParent(currentMaze.transform);
-                }
-                else if (i.maze[x, y] == 2)
-                {
-                    GameObject wall = GameObject.CreatePrimitive(PrimitiveType.Cube);
-                    wall.transform.position = new Vector3(x - center.x + 0.5f, 0, y - center.y + 0.5f);
-                    wall.transform.localScale = new Vector3(1, 1, 1);
-                    wall.name = "Path_" + x + "_" + y;
-                    wall.GetComponent<Renderer>().material.color = Color.white;
-                    wall.transform.SetParent(currentMaze.transform);
-                }
-                for (int j = 0; j < paths; j++)
-                {
-                    if (x == i.starts[j].x && y == i.starts[j].y)
-                    {
-                        GameObject start = GameObject.CreatePrimitive(PrimitiveType.Sphere);
-                        start.transform.position = new Vector3(x - center.x + 0.5f, 1, y - center.y + 0.5f);
-                        start.transform.localScale = new Vector3(1, 1, 1);
-                        start.name = "" + j + "Start_" + x + "_" + y;
-                        start.transform.SetParent(currentMaze.transform);
-                        start.GetComponent<Renderer>().material.color = Color.green;
-                    }
-                    else if (x == i.ends[j].x && y == i.ends[j].y)
-                    {
-                        GameObject end = GameObject.CreatePrimitive(PrimitiveType.Sphere);
-                        end.transform.position = new Vector3(x - center.x + 0.5f, 1, y - center.y + 0.5f);
-                        end.transform.localScale = new Vector3(1, 1, 1);
-                        end.name = "" + j + "End_" + x + "_" + y;
-                        end.transform.SetParent(currentMaze.transform);
-                        end.GetComponent<Renderer>().material.color = Color.red;
-                    }
-                }
-              
-            }
-
-        }
-    }
 
     private (int parentA, int parentB) Selection(List<Individual> population)
     {
@@ -371,6 +311,76 @@ public class GeneticAlgorith : MonoBehaviour
 
         return initPop[0];
     }
+
+    //Generate Level Geometry
+    private void GenerateLevelGeometry(Individual i)
+    {
+        if (currentMaze != null)
+            DestroyImmediate(currentMaze);
+
+
+        Vector2Int center = new Vector2Int(mazeWitdth / 2, mazeHeight / 2);
+        GameObject g = new GameObject();
+        BoxCollider box = g.AddComponent<BoxCollider>();
+        box.center = new Vector3(0, -1, 0);
+        box.size = new Vector3(mazeWitdth - 2, 1, mazeHeight - 2);
+        g.layer = 8;
+
+        g.name = "Maze";
+        g.tag = "Maze";
+        currentMaze = g;
+
+        int[,] newMaze = new int[mazeWitdth, mazeHeight];
+
+        for (int x = 0; x < mazeWitdth; x++)
+        {
+            for (int y = 0; y < mazeHeight; y++)
+            {
+                if (i.maze[x, y] <= 0)
+                {
+                    GameObject wall = GameObject.Instantiate(tileObj);
+                    wall.transform.position = new Vector3(x - center.x + 0.5f, 0, y - center.y + 0.5f);
+                    wall.transform.localScale = new Vector3(1, 1, 1);
+                    wall.name = "Ground_" + x + "_" + y;
+                    wall.transform.SetParent(currentMaze.transform);
+                    wall.layer = 9;
+                }
+                else if (i.maze[x, y] == 2)
+                {
+                    GameObject wall = GameObject.Instantiate(pathObj);
+                    wall.transform.position = new Vector3(x - center.x + 0.5f, 0, y - center.y + 0.5f);
+                    wall.transform.localScale = new Vector3(1, 1, 1);
+                    wall.name = "Path_" + x + "_" + y;
+                    wall.transform.SetParent(currentMaze.transform);
+                    wall.layer = 9;
+                }
+                for (int j = 0; j < paths; j++)
+                {
+                    if (x == i.starts[j].x && y == i.starts[j].y)
+                    {
+                        GameObject start = Instantiate(endObj);
+                        start.transform.position = new Vector3(x - center.x + 0.5f, 1, y - center.y + 0.5f);
+                        start.transform.localScale = new Vector3(1, 1, 1);
+                        start.name = "" + j + "Start_" + x + "_" + y;
+                        start.transform.SetParent(currentMaze.transform);
+                        start.layer = 10;
+                    }
+                    else if (x == i.ends[j].x && y == i.ends[j].y)
+                    {
+                        GameObject end = Instantiate(endObj);
+                        end.transform.position = new Vector3(x - center.x + 0.5f, 1, y - center.y + 0.5f);
+                        end.transform.localScale = new Vector3(1, 1, 1);
+                        end.name = "" + j + "End_" + x + "_" + y;
+                        end.transform.SetParent(currentMaze.transform);
+                        end.layer = 10;
+
+                    }
+                }
+
+            }
+
+        }
+    }
     public void BuildLevel()
     {
         Astar = new PathfindingGenetic();
@@ -378,6 +388,8 @@ public class GeneticAlgorith : MonoBehaviour
         GenerateLevelGeometry(currentIndividual);
 
     }
+
+    //Load and Save Scriptable Objects
     public void SaveLevel()
     {
         var level = ScriptableObject.CreateInstance<LevelSO>();
@@ -411,59 +423,70 @@ public class GeneticAlgorith : MonoBehaviour
         for (int i = 1; i < currentIndividual.path.Count - 1; i++)
         {
 
-            if (currentIndividual.path[i].x + 1 == currentIndividual.path[i + 1].x && currentIndividual.path[i].x - 1 == currentIndividual.path[i - 1].x || currentIndividual.path[i].x - 1 == currentIndividual.path[i + 1].x && currentIndividual.path[i].x + 1 == currentIndividual.path[i - 1].x)
-                GeneratePiece(0, currentIndividual.path[i], straightPieceObject, Vector2.zero);
-            else if (currentIndividual.path[i].y + 1 == currentIndividual.path[i + 1].y && currentIndividual.path[i].y - 1 == currentIndividual.path[i - 1].y || currentIndividual.path[i].y - 1 == currentIndividual.path[i + 1].y && currentIndividual.path[i].y + 1 == currentIndividual.path[i - 1].y)
-                GeneratePiece(90, currentIndividual.path[i], straightPieceObject, Vector2.zero);
+            if ((currentIndividual.path[i].x + 1 == currentIndividual.path[i + 1].x && currentIndividual.path[i].x - 1 == currentIndividual.path[i - 1].x) || (currentIndividual.path[i].x - 1 == currentIndividual.path[i + 1].x && currentIndividual.path[i].x + 1 == currentIndividual.path[i - 1].x))
+                GeneratePiece(0, currentIndividual.path[i], straightPieceObject, Vector2.zero, "S0");
+            else if ((currentIndividual.path[i].y + 1 == currentIndividual.path[i + 1].y && currentIndividual.path[i].y - 1 == currentIndividual.path[i - 1].y) || (currentIndividual.path[i].y - 1 == currentIndividual.path[i + 1].y && currentIndividual.path[i].y + 1 == currentIndividual.path[i - 1].y))
+                GeneratePiece(90, currentIndividual.path[i], straightPieceObject, Vector2.zero, "S1");
 
-            else if (currentIndividual.path[i].y + 1 == currentIndividual.path[i + 1].y && currentIndividual.path[i].x + 1 == currentIndividual.path[i - 1].x)
-                GeneratePiece(0, currentIndividual.path[i], curvedPieceObject, new Vector2(0.20f, 0.20f));
-            else if(currentIndividual.path[i].y - 1 == currentIndividual.path[i + 1].y && currentIndividual.path[i].x - 1 == currentIndividual.path[i - 1].x)
-                GeneratePiece(180, currentIndividual.path[i], curvedPieceObject, new Vector2(-0.20f, -0.20f));
+            else if ((currentIndividual.path[i].y + 1 == currentIndividual.path[i + 1].y && currentIndividual.path[i].x + 1 == currentIndividual.path[i - 1].x) || currentIndividual.path[i].y + 1 == currentIndividual.path[i - 1].y && currentIndividual.path[i].x + 1 == currentIndividual.path[i + 1].x)
+                GeneratePiece(0, currentIndividual.path[i], curvedPieceObject, new Vector2(0.19f, 0.19f), "C0");
+            else if((currentIndividual.path[i].y - 1 == currentIndividual.path[i + 1].y && currentIndividual.path[i].x - 1 == currentIndividual.path[i - 1].x) || (currentIndividual.path[i].y - 1 == currentIndividual.path[i - 1].y && currentIndividual.path[i].x - 1 == currentIndividual.path[i + 1].x))
+                GeneratePiece(180, currentIndividual.path[i], curvedPieceObject, new Vector2(-0.19f, -0.19f), "C1");
 
-            else if (currentIndividual.path[i].y + 1 == currentIndividual.path[i + 1].y && currentIndividual.path[i].x - 1 == currentIndividual.path[i - 1].x)
-                GeneratePiece(90, currentIndividual.path[i], curvedPieceObject, new Vector2(-0.19f, 0.19f));
-            else if (currentIndividual.path[i].y + 1 == currentIndividual.path[i - 1].y && currentIndividual.path[i].x - 1 == currentIndividual.path[i + 1].x)
-                GeneratePiece(90, currentIndividual.path[i], curvedPieceObject, new Vector2(-0.19f, 0.19f));
+            else if ((currentIndividual.path[i].y + 1 == currentIndividual.path[i + 1].y && currentIndividual.path[i].x - 1 == currentIndividual.path[i - 1].x) || currentIndividual.path[i].y + 1 == currentIndividual.path[i - 1].y && currentIndividual.path[i].x - 1 == currentIndividual.path[i + 1].x)
+                GeneratePiece(90, currentIndividual.path[i], curvedPieceObject, new Vector2(-0.19f, 0.19f), "C2");
 
-            else if(currentIndividual.path[i].y - 1 == currentIndividual.path[i + 1].y && currentIndividual.path[i].x + 1 == currentIndividual.path[i - 1].x)
-                GeneratePiece(-90, currentIndividual.path[i], curvedPieceObject, new Vector2(0.19f, -0.19f));
+            else if((currentIndividual.path[i].y - 1 == currentIndividual.path[i + 1].y && currentIndividual.path[i].x + 1 == currentIndividual.path[i - 1].x) || (currentIndividual.path[i].y - 1 == currentIndividual.path[i - 1].y && currentIndividual.path[i].x + 1 == currentIndividual.path[i + 1].x))
+                GeneratePiece(-90, currentIndividual.path[i], curvedPieceObject, new Vector2(0.19f, -0.19f), "C3");
 
-            else if (currentIndividual.path[i].y - 1 == currentIndividual.path[i + 1].y && currentIndividual.path[i].x + 1 == currentIndividual.path[i - 1].x)
-                GeneratePiece(180, currentIndividual.path[i], curvedPieceObject, new Vector2(0.19f, 0.19f));
-            else if (currentIndividual.path[i].y - 1 == currentIndividual.path[i - 1].y && currentIndividual.path[i].x + 1 == currentIndividual.path[i + 1].x)
-                GeneratePiece(-90, currentIndividual.path[i], curvedPieceObject, new Vector2(0.19f, -0.19f));
-            else if (currentIndividual.path[i].y + 1 == currentIndividual.path[i - 1].y && currentIndividual.path[i].x + 1 == currentIndividual.path[i + 1].x)
-                GeneratePiece(0, currentIndividual.path[i], curvedPieceObject, new Vector2(0.19f, 0.19f));
-            else if (currentIndividual.path[i].y - 1 == currentIndividual.path[i - 1].y && currentIndividual.path[i].x - 1 == currentIndividual.path[i + 1].x)
-                GeneratePiece(180, currentIndividual.path[i], curvedPieceObject, new Vector2(-0.19f, -0.19f));
+         
+
 
         }
     }
 
-    private void GeneratePiece(float angle, Vector2Int pos, GameObject newpiece, Vector2 offset)
+    //Generate line puzzle and randomize
+
+    private void GeneratePiece(float angle, Vector2Int pos, GameObject newpiece, Vector2 offset, string name)
     {
         Vector2Int center = new Vector2Int(currentIndividual.width / 2, currentIndividual.heigth / 2);
         GameObject piece = Instantiate(newpiece);
+        piece.layer = 10;
         piece.GetComponent<PieceController>().offset = offset;
         piece.transform.position = new Vector3(pos.x - center.x + 0.5f + offset.x, 1, pos.y - center.y + 0.5f + offset.y);
         piece.transform.SetParent(currentMaze.transform);
+        piece.GetComponent<PieceController>().pieceName = name;
 
-        if (!piece.name.Contains("Cy"))
-            piece.transform.localEulerAngles = new Vector3(90, 0, angle);
-        else
-            piece.transform.localEulerAngles = new Vector3(0, angle, 90);
+        RaycastHit hit;
+        int layerMask = 1 << 9;
+        if(Physics.Raycast(piece.transform.position, new Vector3(0,-10,0), out hit, 100, layerMask))
+        {
+            if (hit.transform.name.Contains("Path"))
+            {
+                string newName = name + hit.transform.name;
+                hit.transform.name = newName;
+            }
+        }
 
-        if (!piece.name.Contains("Cy"))
+        if (!piece.name.Contains("Str"))
+        {
             piece.transform.localScale = new Vector3(50, 50, 50);
+            piece.transform.localEulerAngles = new Vector3(90, 0, angle);
+        }
         else
+        {
+            piece.transform.localEulerAngles = new Vector3(0, angle, 90);
             piece.transform.localScale = new Vector3(0.3f, 0.5f, 0.25f);
+        }
+
 
         piece.name = "Puzzle_" + pos.x + "_" + pos.y;
         pathObjects.Add(piece);
 
 
     }
+
+
 
     public void RandomizeSolution()
     {
@@ -477,7 +500,7 @@ public class GeneticAlgorith : MonoBehaviour
 
             randomPositions.Add(randomPos);
 
-           g.transform.localPosition =  new Vector3(randomPos.x - center.x + 0.5f, g.transform.localPosition.y, randomPos.y - center.y + 0.5f);
+           g.transform.localPosition =  new Vector3(randomPos.x - center.x + 0.5f + g.GetComponent<PieceController>().offset.x, g.transform.localPosition.y, randomPos.y - center.y + 0.5f + g.GetComponent<PieceController>().offset.y);
         }
     }
 

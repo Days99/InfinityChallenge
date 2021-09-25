@@ -13,28 +13,24 @@ MonoBehaviour:
   m_Name: EnergyLevel14
   m_EditorClassIdentifier: 
   levelIndex: 14
-  start: {x: 1, y: 2}
-  end: {x: 3, y: 7}
+  start: {x: 10, y: 1}
+  end: {x: 2, y: 4}
   path:
-  - {x: 1, y: 2}
-  - {x: 2, y: 2}
-  - {x: 2, y: 1}
-  - {x: 3, y: 1}
-  - {x: 4, y: 1}
-  - {x: 5, y: 1}
-  - {x: 5, y: 2}
-  - {x: 6, y: 2}
-  - {x: 7, y: 2}
-  - {x: 7, y: 3}
-  - {x: 7, y: 4}
-  - {x: 6, y: 4}
-  - {x: 6, y: 5}
+  - {x: 10, y: 1}
+  - {x: 10, y: 2}
+  - {x: 10, y: 3}
+  - {x: 9, y: 3}
+  - {x: 9, y: 4}
+  - {x: 9, y: 5}
+  - {x: 9, y: 6}
+  - {x: 8, y: 6}
+  - {x: 7, y: 6}
   - {x: 6, y: 6}
-  - {x: 6, y: 7}
-  - {x: 6, y: 8}
-  - {x: 5, y: 8}
-  - {x: 4, y: 8}
-  - {x: 3, y: 8}
-  - {x: 3, y: 7}
-  width: 10
-  heigth: 10
+  - {x: 5, y: 6}
+  - {x: 4, y: 6}
+  - {x: 3, y: 6}
+  - {x: 2, y: 6}
+  - {x: 2, y: 5}
+  - {x: 2, y: 4}
+  width: 12
+  heigth: 8
